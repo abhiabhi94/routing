@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truck Routing - Optimal Fuel Stops</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-section {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        input[type="text"]:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            margin-top: 30px;
+        }
+        .route-info {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .route-info h3 {
+            margin-top: 0;
+            color: #2e7d32;
+        }
+        .map-container {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .gas-stops {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .gas-stop {
+            margin-bottom: 10px;
+            padding: 8px;
+            background-color: white;
+            border-radius: 4px;
+            border-left: 4px solid #ff9800;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚛 Truck Routing - Optimal Fuel Stops</h1>
+
+        <div class="form-section">
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="origin">Origin (Start Location):</label>
+                    <input type="text"
+                           id="origin"
+                           name="origin"
+                           value="{{ origin|default:'' }}"
+                           placeholder="e.g., Dallas, TX"
+                           required>
+                </div>
+
+                <div class="form-group">
+                    <label for="destination">Destination (End Location):</label>
+                    <input type="text"
+                           id="destination"
+                           name="destination"
+                           value="{{ destination|default:'' }}"
+                           placeholder="e.g., New York, NY"
+                           required>
+                </div>
+
+                <button type="submit">🗺️ Find Optimal Route</button>
+            </form>
+        </div>
+
+        {% if route_result %}
+        <div class="results">
+            <div class="route-info">
+                <h3>📊 Route Summary</h3>
+                <p><strong>Total Distance:</strong> {{ route_result.total_distance }} miles</p>
+                <p><strong>Total Gas Cost:</strong> ${{ route_result.total_gas_cost }}</p>
+                <p><strong>Number of Gas Stops:</strong> {{ route_result.gas_stops|length }}</p>
+                <p><strong>Route:</strong> {{ origin }} → {{ destination }}</p>
+            </div>
+
+            {% if route_result.gas_stops %}
+            <div class="gas-stops">
+                <h3>⛽ Selected Gas Stations</h3>
+                {% for stop in route_result.gas_stops %}
+                <div class="gas-stop">
+                    <strong>{{ forloop.counter }}. {{ stop.name }}</strong><br>
+                    📍 {{ stop.address }}<br>
+                    🏙️ {{ stop.city }}, {{ stop.state }}<br>
+                    💰 ${{ stop.price_per_gallon }}/gallon
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="map-container">
+                {{ map_html|safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
